@@ -248,6 +248,7 @@ document.body.onmouseup = function() {
 
 document.body.onkeypress = function(e) {
     if(e.keyCode == 32) { // spacebar
+        console.log("spacebar");
         if(gameState == "pause") {
             play();
         } else {
