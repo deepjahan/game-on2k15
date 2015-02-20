@@ -1,33 +1,36 @@
 <html>
-    <head>
-        <link rel="stylesheet" type="text/css" href="style.css">
-    </head>
+<head>
+    <link rel="stylesheet" type="text/css" href="css/style.css">
+    <title>Game Over</title>
+    <meta charset="UTF-8">
+</head>
 
-    <body>
-        <div id="header">
-            <h2>Canvas Helicopter</h2>
-        </div>
+<body>
+    <div id="header">
+        <h2>Canvas Helicopter</h2>
+    </div>
 
-        <div id="container">
-            <canvas id="canvas" width="700" height="350"></canvas>
-        </div> 
+    <div id="container">
+        <canvas id="canvas" width="700" height="350"></canvas>
+    </div> 
 
-        <div id="instructions">
-            Click your mouse button to start playing. To make the helicopter
-            <b>ascend</b>, click and hold the <b>left mouse button</b>. 
-            <br>
-            To <b>pause/resume</b>, press the <b>spacebar</b> on your keyboard.
-            <br>
-            To <b>restart</b> the game, press <b>'R'</b> on your keyboard.
-            <br><br>
-            Go to <a href="https://github.com/isaacdontjelindell/canvas-helicopter">GitHub</a> to see the source for this game.
-        </div>
-        <select id="grammars"></select>
+    <div id="instructions">
+        Click your mouse button to start playing. To make the helicopter
+        <b>ascend</b>, click and hold the <b>left mouse button</b>. 
+        <br>
+        To <b>pause/resume</b>, press the <b>spacebar</b> on your keyboard.
+        <br>
+        To <b>restart</b> the game, press <b>'R'</b> on your keyboard.
+    </div>
+    <br>
+    <select id="grammars"></select>
+
     <button id="startBtn">Start</button>
     <button id="stopBtn">Stop</button>
     <span id="recording-indicator" style="border-radius: 10px; -moz-border-radius: 10px; -webkit-border-radius: 10px; width: 20px; height: 20px; background: red;"></span>
     <h2>Recognition Output</h2>
     <div id="output" style="height:150px;overflow:auto;" >
+
     </div>
     <h2>Status</h2>
     <div id="current-status">Loading page</div>
@@ -109,11 +112,11 @@
         // Called once the recognizer is ready
         // We then add the grammars to the input select tag and update the UI
         var recognizerReady = function() {
-         updateGrammars();
-         recognizerReady = true;
-         updateUI();
-         updateStatus("Recognizer ready");
-     };
+            updateGrammars();
+            recognizerReady = true;
+            updateUI();
+            updateStatus("Recognizer ready");
+        };
 
         // We get the grammars defined below and fill in the input select tag
         var updateGrammars = function() {
@@ -136,7 +139,7 @@
             if (index < g.length) {
               grammarIds.unshift({title: g[index].title})
               postRecognizerJob({command: 'addGrammar', data: g[index].g},
-               function(id) {feedGrammar(grammars, index + 1, {id:id});});
+                 function(id) {feedGrammar(grammars, index + 1, {id:id});});
           } else {
               recognizerReady();
           }
@@ -144,9 +147,9 @@
 
         // This adds words to the recognizer. When it calls back, we add grammars
         var feedWords = function(words) {
-         postRecognizerJob({command: 'addWords', data: words},
+           postRecognizerJob({command: 'addWords', data: words},
             function() {feedGrammar(grammars, 0);});
-     };
+        };
 
         // This initializes the recognizer. When it calls back, we add words
         var initRecognizer = function() {
@@ -158,12 +161,16 @@
         };
 
         // When the page is loaded, we spawn a new recognizer worker and call getUserMedia to
+
         // request access to the microphone
         window.onload = function() {
+            console.log("fnsdkb m v");
             outputContainer = document.getElementById("output");
+            console.log("HERE");
             updateStatus("Initializing web audio and speech recognizer, waiting for approval to access the microphone");
             callbackManager = new CallbackManager();
             spawnWorker("js/recognizer.js", function(worker) {
+            console.log("HERE2");
             // This is the onmessage function, once the worker is fully loaded
             worker.onmessage = function(e) {
                 // This is the case when we have a callback id to be called
@@ -200,7 +207,7 @@
         if (navigator.getUserMedia) navigator.getUserMedia({audio: true}, startUserMedia, function(e) {
             updateStatus("No live audio input in this browser");
         });
-        else updateStatus("No web audio support in this browser");
+            else updateStatus("No web audio support in this browser");
 
         // Wiring JavaScript to the UI
         var startBtn = document.getElementById('startBtn');
@@ -220,9 +227,8 @@
     </script>
     <script src="js/audioRecorder.js"></script>
     <script src="js/callbackManager.js"></script>
-        <!-- I think the script tag needs to be after the canvas is added -->
-        <script src="main.js"></script>
-    </body>
+    <script src="js/main.js"></script>
+</body>
 
 </html>
 <!--
@@ -231,7 +237,6 @@
 <head>
     <link rel="stylesheet" type="text/css" href="style.css">
     <meta charset="utf-8">
-    <title>Game Over</title>
 </head>
 <body>
     <h2>Game Over</h2>
