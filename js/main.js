@@ -45,9 +45,6 @@ var scrollVal;
 var ascentRate;
 var descentRate;
 
-
-window.onload = function () { setup(); }
-
 function setup() {
     gameState = "pause";
     clearScreen();
@@ -257,7 +254,7 @@ document.body.onkeypress = function(e) {
     }
     if(e.keyCode == 114) {
         if(gameState != "play") {
-            setup()
+            setup();
         }
     }
 }
