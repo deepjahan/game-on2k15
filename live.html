@@ -6,12 +6,12 @@
     <title>Game Over</title>
 </head>
 <body>
-    <h2>Game Over</h2>
+    <h2></h2>
     <div id="header">
-        <h2>Canvas Helicopter</h2>
+        <h2>Game Over: Canvas Helicopter</h2>
     </div>
     <div id="container">
-        <canvas id="canvas" width="700" height="350"></canvas>
+        <canvas id="canvas" width="700" height="500"></canvas>
     </div> 
 
     <div id="instructions">
@@ -34,7 +34,6 @@
     <h2>Status</h2>
     <div id="current-status">Loading page</div>
     
-    <script src="js/main.js"></script>
     <script>
         // These will be initialized later
         var recognizer, recorder, callbackManager, audioContext, outputContainer;
@@ -62,7 +61,27 @@
 
         // To display the hypothesis sent by the recognizer
         function updateHyp(hyp) {
-            if (outputContainer) outputContainer.innerHTML = hyp;
+            word_split = hyp.split(" ");
+            last_word = word_split[word_split.length - 1];
+            if (last_word == "RAISE"){
+                moveup();
+                outputContainer.innerHTML = "1: "
+            }else if (last_word == "DROP"){
+                movedown();
+                outputContainer.innerHTML = "2: "
+            }else if (last_word == "RESTART"){
+                if (gameState != "play"){
+                    setup();
+                }
+                outputContainer.innerHTML = "3: "
+            }else{
+                play();
+                outputContainer.innerHTML = ""
+            }
+            outputContainer.innerHTML += last_word;
+            //if(hyp != "")
+            draw();
+            //if (outputContainer) outputContainer.innerHTML = last_word;
         };
 
         // This updates the UI when the app might get ready
@@ -100,6 +119,7 @@
         // This starts recording. We first need to get the id of the grammar to use
         var startRecording = function() {
             var id = document.getElementById('grammars').value;
+            console.log(recorder, id);
             if (recorder && recorder.start(id)) displayRecording(true);
         };
 
@@ -137,9 +157,9 @@
         var feedGrammar = function(g, index, id) {
             if (id && (grammarIds.length > 0)) grammarIds[0].id = id.id;
             if (index < g.length) {
-              grammarIds.unshift({title: g[index].title})
-              postRecognizerJob({command: 'addGrammar', data: g[index].g},
-               function(id) {feedGrammar(grammars, index + 1, {id:id});});
+                grammarIds.unshift({title: g[index].title})
+                postRecognizerJob({command: 'addGrammar', data: g[index].g},
+                    function(id) {feedGrammar(grammars, index + 1, {id:id});});
             } else {
                 recognizerReady();
             }
@@ -181,7 +201,8 @@
                 if (e.data.hasOwnProperty('hyp')) {
                     var newHyp = e.data.hyp;
                     if (e.data.hasOwnProperty('final') &&  e.data.final) newHyp = "Final: " + newHyp;
-                    updateHyp(newHyp);
+
+                    var myVar=setTimeout(function () {updateHyp(newHyp);}, 2000);
                 }
                 // This is the case when we have an error
                 if (e.data.hasOwnProperty('status') && (e.data.status == "error")) {
@@ -212,17 +233,22 @@
         startBtn.disabled = true;
         stopBtn.disabled = true;
         startBtn.onclick = startRecording;
+        //console.log(recorder);
+        startBtn.onclick();
         stopBtn.onclick = stopRecording;
+        //startRecording();
     };
 
         // This is the list of words that need to be added to the recognizer
         // This follows the CMU dictionary format
-        var wordList = [["UP", "UH P"], ["UP(2)", "AH P"], ["DOWN", "T UW"], ["DOWN(2)", "D AW N"]];
-        var grammarCommands = { numStates: 1, start: 0, end: 0, transitions: [{from: 0, to: 0, word: "UP"}, {from: 0, to: 0, word: "DOWN"}]};
+        var wordList = [["RAISE", "R EY Z"], ["RAISE(2)", "R EY Z"], ["DROP", "D R AA P"], ["DROP(2)", "D R AA P"], ["RESTART", "R IY S T AA R T"]];
+        var grammarCommands = { numStates: 1, start: 0, end: 0, transitions: [{from: 0, to: 0, word: "RAISE"}, {from: 0, to: 0, word: "DROP"},
+            {from: 0, to: 0, word: "RESTART"}]};
         var grammars = [{title: "Commands", g: grammarCommands}];
         var grammarIds = [];
     </script>
     <script src="js/audioRecorder.js"></script>
     <script src="js/callbackManager.js"></script>
+    <script src="js/main.js"></script>
 </body>
 </html>

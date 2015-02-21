@@ -2,17 +2,18 @@
 /* global constants */
 var canvas = document.getElementById('canvas');
 var ctx = canvas.getContext('2d');
-var mouseDown = 0;
+var ini_mouseDown = 1;
+var mouseDown = 1;
 var font = "16 verdana";
 
 var textColor = "rgb(255,255,255)";
 var smokeColor = "rgb(209,209,209)";
 
-var initialAscentRate = 1.0;
-var initialDescentRate = 1.5; // in pixels per frame
+var initialAscentRate = 4.5;
+var initialDescentRate = 4.5; // in pixels per frame
 var gravity = .08  // how quickly the descent rate increases
 var liftFactor = .04; // how quickly the climb rate increases
-var terminalVelocity = 5; // descent and ascent rate will never exceed this
+var terminalVelocity = 10; // descent and ascent rate will never exceed this
 
 var brickV = 6; // brick velocity
 var brickInterval = 40; // difficulty level 
@@ -23,9 +24,9 @@ var brickColor = "rgb(255,5,5)";
 var chopperHeight = 26;
 var chopperWidth = 77;
 var chopper = new Image();
-chopper.src = "img/chopper.png"
+chopper.src = "img/chopper.gif"
 
-var backgroundHeight = 350;
+var backgroundHeight = 500;
 var backgroundWidth = 702;
 var backgroundV = 2; // background scroll velocity
 var background = new Image();
@@ -105,8 +106,8 @@ function draw() {
         ctx.fillText('Score:'+ score, 600, 340);
         
         collisionCheck();
-        
-        window.requestAnimationFrame(draw, canvas);
+        var myVar=setTimeout(function () {draw();}, 500);
+        //window.requestAnimationFrame(draw, canvas);
     }
 }
 
@@ -119,20 +120,24 @@ function drawCrash() {
 }
 
 function animateChopper() {
-    if(mouseDown) {
+    if(mouseDown < ini_mouseDown) {
         descentRate = initialDescentRate;
         chopperY = chopperY - ascentRate;
 
         if(!(ascentRate > terminalVelocity)) {
             ascentRate += liftFactor;
         }
-    } else {
+    } else if (mouseDown > ini_mouseDown) {
         ascentRate = initialAscentRate;
         chopperY = chopperY + descentRate;
     
         if(!(descentRate > terminalVelocity)) {
             descentRate += gravity;
         }
+    }
+    else
+    {
+
     }
 
     // border detection
@@ -229,22 +234,39 @@ function clearScreen() {
 
 
 /* This is a nifty trick! */
-document.body.onmousedown = function() { 
+/*document.body.onmousedown = function() { 
     if(!(mouseDown == 1)) {
         ++mouseDown;
     }
-}
-document.body.onmouseup = function() {
+}*/
+/*document.body.onmouseup = function() {
     if(mouseDown > 0) {
         --mouseDown;
     }
     if(gameState == "pause") {
         play();
     }
+}*/
+
+function moveup() {
+    //if(mouseDown > 0) {
+        ini_mouseDown=mouseDown;
+        --mouseDown;
+    //}
+    if(gameState == "pause") {
+        play();
+    }
 }
 
-document.body.onkeypress = function(e) {
-    if(e.keyCode == 32) { // spacebar
+function movedown() {
+    //if(!(mouseDown == 1)) {
+        ini_mouseDown=mouseDown;
+        ++mouseDown;
+    //}
+}
+/*document.body.onkeypress = function(e) {
+    if(e.keyCode == 32) { 
+        // spacebar
         console.log("spacebar");
         if(gameState == "pause") {
             play();
@@ -258,7 +280,7 @@ document.body.onkeypress = function(e) {
         }
     }
 }
-
+*/
 
 /**
  * Provides requestAnimationFrame in a cross browser way.
@@ -272,7 +294,7 @@ if ( !window.requestAnimationFrame ) {
         window.oRequestAnimationFrame ||
         window.msRequestAnimationFrame ||
         function( /* function FrameRequestCallback */ callback, /* DOMElement Element */ element ) {
-            window.setTimeout( callback, 1000 / 60 );
+            window.setTimeout( callback, 10000);
         };
     } )();
 }
