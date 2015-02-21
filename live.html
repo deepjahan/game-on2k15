@@ -36,7 +36,7 @@
     
     <script>
         // These will be initialized later
-        var recognizer, recorder, callbackManager, audioContext, outputContainer;
+        var recognizer, recorder, callbackManager, audioContext, outputContainer, prevTime, currTime;
         // Only when both recorder and recognizer do we have a ready application
         var recorderReady = recognizerReady = false;
 
@@ -79,7 +79,6 @@
                 outputContainer.innerHTML = ""
             }
             outputContainer.innerHTML += last_word;
-            //if(hyp != "")
             draw();
             //if (outputContainer) outputContainer.innerHTML = last_word;
         };
@@ -201,8 +200,12 @@
                 if (e.data.hasOwnProperty('hyp')) {
                     var newHyp = e.data.hyp;
                     if (e.data.hasOwnProperty('final') &&  e.data.final) newHyp = "Final: " + newHyp;
-
-                    var myVar=setTimeout(function () {updateHyp(newHyp);}, 2000);
+                    prevTime = (typeof prevTime === 'undefined') ? new Date().getTime() : prevTime;
+                    currTime = new Date().getTime();
+                    if (currTime > prevTime + 20){
+                        prevTime = currTime;
+                        updateHyp(newHyp);
+                    }
                 }
                 // This is the case when we have an error
                 if (e.data.hasOwnProperty('status') && (e.data.status == "error")) {
