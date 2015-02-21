@@ -29,7 +29,7 @@
     <button id="stopBtn">Stop</button>
     <span id="recording-indicator" style="border-radius: 10px; -moz-border-radius: 10px; -webkit-border-radius: 10px; width: 20px; height: 20px; background: red;"></span>
     <h2>Recognition Output</h2>
-    <div id="output" style="height:150px;overflow:auto;" >
+    <div id="output" style="overflow:auto;" >
     </div>
     <h2>Status</h2>
     <div id="current-status">Loading page</div>
@@ -64,17 +64,32 @@
             word_split = hyp.split(" ");
             last_word = word_split[word_split.length - 1];
             if (last_word == "RAISE"){
-                moveup();
-                outputContainer.innerHTML = "1: "
-            }else if (last_word == "DROP"){
-                movedown();
-                outputContainer.innerHTML = "2: "
-            }else if (last_word == "RESTART"){
-                if (gameState != "play"){
-                    setup();
+                if (mode == 1){
+                    moveup();    
                 }
+                outputContainer.innerHTML = "1: "
+            }else if (last_word == "DROP") {
+                if (mode == 1){
+                    movedown();
+                }
+                outputContainer.innerHTML = "2: "
+            }else if (last_word == "JUMP"){
+                if (mode == 2) {
+                    jump();
+                }
+            }
+            /*else if (last_word == "RESTART"){
+                setup();
                 outputContainer.innerHTML = "3: "
-            }else{
+            }*/
+
+            /*else if (last_word == "PLAY"){
+                play();
+            }else if (last_word == "PAUSE"){
+                pause();
+            }
+            */
+            else{
                 play();
                 outputContainer.innerHTML = ""
             }
@@ -118,7 +133,6 @@
         // This starts recording. We first need to get the id of the grammar to use
         var startRecording = function() {
             var id = document.getElementById('grammars').value;
-            console.log(recorder, id);
             if (recorder && recorder.start(id)) displayRecording(true);
         };
 
@@ -236,17 +250,23 @@
         startBtn.disabled = true;
         stopBtn.disabled = true;
         startBtn.onclick = startRecording;
-        //console.log(recorder);
         startBtn.onclick();
         stopBtn.onclick = stopRecording;
-        //startRecording();
     };
 
         // This is the list of words that need to be added to the recognizer
         // This follows the CMU dictionary format
-        var wordList = [["RAISE", "R EY Z"], ["RAISE(2)", "R EY Z"], ["DROP", "D R AA P"], ["DROP(2)", "D R AA P"], ["RESTART", "R IY S T AA R T"]];
-        var grammarCommands = { numStates: 1, start: 0, end: 0, transitions: [{from: 0, to: 0, word: "RAISE"}, {from: 0, to: 0, word: "DROP"},
-            {from: 0, to: 0, word: "RESTART"}]};
+        var wordList = [["RAISE", "R EY Z"], ["RAISE(2)", "R EY Z"], 
+            ["DROP", "D R AA P"], ["DROP(2)", "D R AA P"], ["RESTART", "R IY S T AA R T"], 
+            ["PLAY", "P L EY"], ["PAUSE", "P AO Z"]];
+        var grammarCommands = { numStates: 1, start: 0, end: 0, 
+            transitions: [
+            {from: 0, to: 0, word: "RAISE"}, 
+            {from: 0, to: 0, word: "DROP"},
+            /*{from: 0, to: 0, word: "RESTART"}, 
+            {from: 0, to: 0, word: "PLAY"}, 
+            {from: 0, to: 0, word: "PAUSE"}*/
+            ]};
         var grammars = [{title: "Commands", g: grammarCommands}];
         var grammarIds = [];
     </script>

@@ -5,9 +5,10 @@ var ctx = canvas.getContext('2d');
 var ini_mouseDown = 1;
 var mouseDown = 1;
 var font = "16 verdana";
+var mode=1;
 
-var textColor = "rgb(255,255,255)";
-var smokeColor = "rgb(209,209,209)";
+var textColor = "rgb(255, 255, 255)";
+var smokeColor = "rgb(209, 209, 209)";
 
 var initialAscentRate = 4.5;
 var initialDescentRate = 4.5; // in pixels per frame
@@ -21,23 +22,31 @@ var brickHeight = 60;
 var brickWidth = 30;
 var brickColor = "rgb(255,5,5)";
 
+var powerupV = brickV;
+var powerupInterval = brickInterval * 5;
+var powerupHeight = 20;
+var powerupWidth = 20;
+var powerupColor = "rgb{150,5,150}";
+
 var chopperHeight = 26;
 var chopperWidth = 77;
 var chopper = new Image();
-chopper.src = "img/chopper.gif"
+chopper.src = "img/chopper.png"
 
 var backgroundHeight = 500;
 var backgroundWidth = 702;
 var backgroundV = 2; // background scroll velocity
 var background = new Image();
-background.src = "img/bg.jpg";
+background.src = "img/bg.png";
 
 
 /* variables that will be reset every time setup is called: */
 var chopperX;
 var chopperY;
 var iterationCount;
+var iterationCount1;
 var brickList;
+var powerupList;
 var smokeList;
 var gameState;
 var score;
@@ -45,6 +54,8 @@ var scrollVal;
 
 var ascentRate;
 var descentRate;
+var prevTme, currTime;
+var chopper_step = 5;
 
 function setup() {
     gameState = "pause";
@@ -53,6 +64,7 @@ function setup() {
     chopper.src = "img/chopper.png";
 
     brickList = new Array();
+    powerupList = new Array();
     smokeList = new Array();
 
     chopperX = 100;
@@ -62,24 +74,28 @@ function setup() {
     ascentRate = initialAscentRate;
     
     iterationCount = 0;
+    iterationCount1 = 0;
     score = 0;
+    mode=1;
 
     scrollVal = 0;
 
     ctx.font = font;
 
     addBrick();
+    addpowerup();
 
     ctx.drawImage(background, 0, 0, backgroundWidth, backgroundHeight);
     ctx.drawImage(chopper, chopperX, chopperY, chopperWidth, chopperHeight);
 
     ctx.fillStyle = textColor;
-    ctx.fillText('Press spacebar to play/pause', 10, 340);
+    ctx.fillText('Press spacebar to play/pause', 10, backgroundHeight - 20);
 }
 
 function play() {
     if(gameState == "pause") {
-        intervalId = window.requestAnimationFrame(draw, canvas); //window.setInterval(draw, refreshRate);
+        intervalId = window.requestAnimationFrame(draw, canvas); 
+        //window.setInterval(draw, refreshRate);
         gameState = "play";
     }
 }
@@ -91,7 +107,7 @@ function pause() {
 }
 
 function stop() {
-    gameState = "stop"
+    gameState = "stop";
 }
 
 function draw() {
@@ -100,13 +116,19 @@ function draw() {
         animateBackground();
         animateChopper();
         animateBricks();
+        //animatepowerups();
         ctx.font = font;
         ctx.fillStyle = textColor;
-        ctx.fillText('Press spacebar to play/pause', 10, 340);
-        ctx.fillText('Score:'+ score, 600, 340);
+        //ctx.fillText('Press spacebar to play/pause', 10, backgroundHeight - 20);
+        ctx.fillText('Score:'+ score, 600, backgroundHeight - 20);
         
         collisionCheck();
-        var myVar=setTimeout(function () {draw();}, 500);
+        prevTime = (typeof prevTime === 'undefined') ? new Date().getTime() : prevTime;
+        currTime = new Date().getTime();
+        if (currTime > prevTime + 1){
+            prevTime = currTime;
+            draw();
+        }                
         //window.requestAnimationFrame(draw, canvas);
     }
 }
@@ -114,8 +136,7 @@ function draw() {
 function drawCrash() {
     chopper.src = "img/chopper_burn.png";
     ctx.drawImage(chopper, chopperX, chopperY, chopperWidth, chopperHeight);
-    ctx.font = "40 Bold Verdana"
-
+    ctx.font = "40 Bold Verdana";
     ctx.fillText("YOU LOSE!", 240, 80);
 }
 
@@ -150,6 +171,11 @@ function animateChopper() {
     animateSmoke();
 }
 
+/*function animateChopper2() {
+    chopperX += chopper_step;
+
+}*/
+
 function animateBricks() {
     iterationCount++;
     for(var i=0; i<brickList.length; i++) {
@@ -164,9 +190,39 @@ function animateBricks() {
             // If enough distance (based on brickInterval) has elapsed since 
             // the last brick was created, create another one
             if(iterationCount >= brickInterval) {
-                addBrick();
+                if (mode == 1){
+                    addBrick();    
+                }else{
+                    addBrick2();
+                }
                 iterationCount = 0;
                 score=score+10;
+            }
+        }
+    }
+}
+
+function animatepowerups() {
+    iterationCount1++;
+    for(var i=0; i<powerupList.length; i++) {
+        if(powerupList[i].x + powerupWidth < 0) {
+            powerupList.splice(i, 1); // remove the powerup that's outside the canvas
+        } 
+        else {
+            powerupList[i].x = powerupList[i].x - powerupV
+            ctx.fillStyle = powerupColor
+            ctx.fillRect(powerupList[i].x, powerupList[i].y, powerupWidth, powerupHeight)
+            
+            // If enough distance (based on powerupInterval) has elapsed since 
+            // the last powerup was created, create another one
+            if(iterationCount1 >= powerupInterval) {
+                if (mode == 1){
+                    addpowerup();
+                }else{
+                    addpowerup2();
+                }
+                iterationCount1 = 0;
+                //score=score+10;
             }
         }
     }
@@ -206,6 +262,52 @@ function collisionCheck() {
             gameOver();
         }
     }
+    for(var i=0; i<powerupList.length; i++) {
+        if (chopperX < (powerupList[i].x + powerupWidth) && (chopperX + chopperWidth) > powerupList[i].x
+                    && chopperY < (powerupList[i].y + powerupHeight) && (chopperY + chopperHeight) > powerupList[i].y ) {
+            changeMode();
+        }
+    }
+}
+
+function changeMode() {
+    mode=2;
+    chopperY = backgroundHeight - chopperHeight;
+    chopper.src = "img/walk.gif";
+    for(var i=0; i<brickList.length; i++) {
+        brickList[i].y = chopperY;
+    }
+}
+
+
+function second_mode(){
+    clearScreen();
+    animateBackground();
+    //animateChopper();
+    animateBricks();
+    animatepowerups();
+    ctx.font = font;
+    ctx.fillStyle = textColor;
+    ctx.fillText('Press spacebar to play/pause', 10, backgroundHeight - 20);
+    ctx.fillText('Score:'+ score, 600, backgroundHeight - 20);
+        
+    collisionCheck();
+    prevTime = (typeof prevTime === 'undefined') ? new Date().getTime() : prevTime;
+    currTime = new Date().getTime();
+    if (currTime > prevTime + 1){
+        prevTime = currTime;
+        draw();
+    }
+        
+}
+
+function jump() {
+    moveup();
+    moveup();
+    moveup();    
+    movedown();
+    movedown();
+    movedown();
 }
 
 function gameOver() {
@@ -218,6 +320,27 @@ function addBrick() {
     newBrick.x = canvas.width;
     newBrick.y = Math.floor(Math.random() * (canvas.height-brickHeight))
     brickList.push(newBrick);
+}
+
+function addBrick2() {
+    newBrick = {}
+    newBrick.x = canvas.width;
+    newBrick.y = canvas.height-brickHeight;
+    brickList.push(newBrick);
+}
+
+function addpowerup() {
+    newpowerup = {}
+    newpowerup.x = canvas.width;
+    newpowerup.y = Math.floor(Math.random() * (canvas.height-powerupHeight))
+    powerupList.push(newpowerup);
+}
+
+function addpowerup2() {
+    newpowerup = {}
+    newpowerup.x = canvas.width;
+    newpowerup.y = canvas.height-powerupHeight;
+    powerupList.push(newpowerup);
 }
 
 function addSmokeTrail() {
@@ -267,7 +390,6 @@ function movedown() {
 /*document.body.onkeypress = function(e) {
     if(e.keyCode == 32) { 
         // spacebar
-        console.log("spacebar");
         if(gameState == "pause") {
             play();
         } else {
@@ -294,7 +416,7 @@ if ( !window.requestAnimationFrame ) {
         window.oRequestAnimationFrame ||
         window.msRequestAnimationFrame ||
         function( /* function FrameRequestCallback */ callback, /* DOMElement Element */ element ) {
-            window.setTimeout( callback, 10000);
+            window.setTimeout( callback, 1000/60);
         };
     } )();
 }
