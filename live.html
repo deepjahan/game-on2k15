@@ -14,14 +14,14 @@
         <canvas id="canvas" width="700" height="500"></canvas>
     </div> 
 
-    <div id="instructions">
+    <!--<div id="instructions">
         Click your mouse button to start playing. To make the helicopter
         <b>ascend</b>, click and hold the <b>left mouse button</b>. 
         <br>
         To <b>pause/resume</b>, press the <b>spacebar</b> on your keyboard.
         <br>
         To <b>restart</b> the game, press <b>'R'</b> on your keyboard.
-    </div>
+    </div>-->
     <br>
 
     <select id="grammars"></select>
@@ -66,19 +66,26 @@
             if (last_word == "RAISE"){
                 if (mode == 1){
                     moveup();    
+                    outputContainer.innerHTML = "1: ";
+                }else if (mode == 2){
+                    if (jumpFlag == 2){
+                        jumpFlag=0;
+                    }
+                    //jump();
+                    outputContainer.innerHTML = "3: ";
                 }
-                outputContainer.innerHTML = "1: "
-            }else if (last_word == "DROP") {
+            }else if (last_word == "DROP" ) {
                 if (mode == 1){
                     movedown();
                 }
-                outputContainer.innerHTML = "2: "
-            }else if (last_word == "JUMP"){
-                if (mode == 2) {
-                    jump();
-                }
+                outputContainer.innerHTML = "2: ";
             }
-            /*else if (last_word == "RESTART"){
+            /*else if (last_word == "HOP"){
+                if (mode == 2) {
+                }
+                outputContainer.innerHTML = "3: ";
+            }
+            else if (last_word == "RESTART"){
                 setup();
                 outputContainer.innerHTML = "3: "
             }*/
@@ -257,13 +264,14 @@
         // This is the list of words that need to be added to the recognizer
         // This follows the CMU dictionary format
         var wordList = [["RAISE", "R EY Z"], ["RAISE(2)", "R EY Z"], 
-            ["DROP", "D R AA P"], ["DROP(2)", "D R AA P"], ["RESTART", "R IY S T AA R T"], 
-            ["PLAY", "P L EY"], ["PAUSE", "P AO Z"]];
+            ["DROP", "D R AA P"], ["DROP(2)", "D R AA P"], ["RESTART", "R IY S T AA R T"],
+            ["HOP", "HH AA P"], ["PLAY", "P L EY"], ["PAUSE", "P AO Z"]];
         var grammarCommands = { numStates: 1, start: 0, end: 0, 
             transitions: [
             {from: 0, to: 0, word: "RAISE"}, 
             {from: 0, to: 0, word: "DROP"},
-            /*{from: 0, to: 0, word: "RESTART"}, 
+            /*{from: 0, to: 0, word: "HOP"},
+            {from: 0, to: 0, word: "RESTART"}, 
             {from: 0, to: 0, word: "PLAY"}, 
             {from: 0, to: 0, word: "PAUSE"}*/
             ]};

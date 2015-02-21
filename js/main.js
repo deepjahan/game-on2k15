@@ -6,6 +6,7 @@ var ini_mouseDown = 1;
 var mouseDown = 1;
 var font = "16 verdana";
 var mode=1;
+var jumpFlag=2;
 
 var textColor = "rgb(255, 255, 255)";
 var smokeColor = "rgb(209, 209, 209)";
@@ -23,10 +24,10 @@ var brickWidth = 30;
 var brickColor = "rgb(255,5,5)";
 
 var powerupV = brickV;
-var powerupInterval = brickInterval * 5;
+var powerupInterval = 120;
 var powerupHeight = 20;
 var powerupWidth = 20;
-var powerupColor = "rgb{150,5,150}";
+var powerupColor = "rgb(150,5,150)";
 
 var chopperHeight = 26;
 var chopperWidth = 77;
@@ -111,24 +112,28 @@ function stop() {
 }
 
 function draw() {
-    if(gameState == "play") {
+    if(gameState == "play")
+    {
         clearScreen();
         animateBackground();
         animateChopper();
         animateBricks();
-        //animatepowerups();
+        if (mode == 1)
+        {
+            animatepowerups();
+        }
         ctx.font = font;
         ctx.fillStyle = textColor;
-        //ctx.fillText('Press spacebar to play/pause', 10, backgroundHeight - 20);
+        ctx.fillText('Press spacebar to play/pause', 10, backgroundHeight - 20);
         ctx.fillText('Score:'+ score, 600, backgroundHeight - 20);
-        
         collisionCheck();
         prevTime = (typeof prevTime === 'undefined') ? new Date().getTime() : prevTime;
         currTime = new Date().getTime();
         if (currTime > prevTime + 1){
             prevTime = currTime;
             draw();
-        }                
+        }
+
         //window.requestAnimationFrame(draw, canvas);
     }
 }
@@ -141,26 +146,46 @@ function drawCrash() {
 }
 
 function animateChopper() {
-    if(mouseDown < ini_mouseDown) {
-        descentRate = initialDescentRate;
-        chopperY = chopperY - ascentRate;
+    if (mode == 1){
+        if(mouseDown < ini_mouseDown) {
+            descentRate = initialDescentRate;
+            chopperY = chopperY - ascentRate;
 
-        if(!(ascentRate > terminalVelocity)) {
-            ascentRate += liftFactor;
+            if(!(ascentRate > terminalVelocity)) {
+                ascentRate += liftFactor;
+            }
+        } else if (mouseDown > ini_mouseDown) {
+            ascentRate = initialAscentRate;
+            chopperY = chopperY + descentRate;
+
+            if(!(descentRate > terminalVelocity)) {
+                descentRate += gravity;
+            }
         }
-    } else if (mouseDown > ini_mouseDown) {
-        ascentRate = initialAscentRate;
-        chopperY = chopperY + descentRate;
+        else
+        {
+
+        }
+
+    }else if (mode == 2){
+        if(jumpFlag==0){
+            if (chopperY > backgroundHeight - brickHeight - 1.38 * chopperHeight ){
+                chopperY -= initialAscentRate;
+            }
+            else
+                jumpFlag=1;
+        }
+        else if (jumpFlag == 1){
+            if (chopperY < backgroundHeight - chopperHeight ){
+                chopperY += initialDescentRate;
+            }
+            else{
+                jumpFlag = 2;
+                chopperY = backgroundHeight - chopperHeight;
+            }
+        }
+    }
     
-        if(!(descentRate > terminalVelocity)) {
-            descentRate += gravity;
-        }
-    }
-    else
-    {
-
-    }
-
     // border detection
     if( (chopperY < 0) || (chopperY > (canvas.height-chopperHeight)) ) {
         gameOver();
@@ -255,59 +280,57 @@ function animateBackground() {
  * Since the image is square but the helicopter is not, collisions will be detected
  * when the helicopter is merely close, and not actually contacting the brick.
  */
-function collisionCheck() {
-    for(var i=0; i<brickList.length; i++) {
+ function collisionCheck() {
+    for(var i=0; i<brickList.length; i++)
+    {
         if (chopperX < (brickList[i].x + brickWidth) && (chopperX + chopperWidth) > brickList[i].x
-                    && chopperY < (brickList[i].y + brickHeight) && (chopperY + chopperHeight) > brickList[i].y ) {
-            gameOver();
+            && chopperY < (brickList[i].y + brickHeight) && (chopperY + chopperHeight) > brickList[i].y )
+        {
+            if (mode == 2){
+                changeMode(1);    
+            }else{
+                gameOver();
+            }
         }
     }
-    for(var i=0; i<powerupList.length; i++) {
+    for(var i=0; i<powerupList.length; i++)
+    {
         if (chopperX < (powerupList[i].x + powerupWidth) && (chopperX + chopperWidth) > powerupList[i].x
-                    && chopperY < (powerupList[i].y + powerupHeight) && (chopperY + chopperHeight) > powerupList[i].y ) {
-            changeMode();
+            && chopperY < (powerupList[i].y + powerupHeight) && (chopperY + chopperHeight) > powerupList[i].y )
+        {
+            changeMode(2);
         }
     }
 }
 
-function changeMode() {
-    mode=2;
-    chopperY = backgroundHeight - chopperHeight;
-    chopper.src = "img/walk.gif";
-    for(var i=0; i<brickList.length; i++) {
-        brickList[i].y = chopperY;
+function changeMode(new_mode) {
+    mode=new_mode;
+    if (mode == 2){
+        chopperY = backgroundHeight - chopperHeight;
+        chopper.src = "img/walk2.gif";
+        var index = -1, mini = backgroundWidth + 1;
+        for(var i=0; i < brickList.length; i++) {
+            if (brickList[i].x < mini){
+                index = i;
+                mini = brickList[i].x;
+            }
+            brickList[i].y = chopperY;
+        }
+        brickList.splice(index, 1);
+    }else{
+        chopperY = canvas.height / 2;
+        chopper.src = "img/chopper.png";
+        var index = -1, mini = backgroundWidth + 1;
+        for(var i=0; i < brickList.length; i++) {
+            if (brickList[i].x < mini){
+                index = i;
+                mini = brickList[i].x;
+            }
+            brickList[i].y = Math.floor(Math.random() * (canvas.height - brickHeight));
+        }
+        brickList.splice(index, 1);    
     }
-}
-
-
-function second_mode(){
-    clearScreen();
-    animateBackground();
-    //animateChopper();
-    animateBricks();
-    animatepowerups();
-    ctx.font = font;
-    ctx.fillStyle = textColor;
-    ctx.fillText('Press spacebar to play/pause', 10, backgroundHeight - 20);
-    ctx.fillText('Score:'+ score, 600, backgroundHeight - 20);
-        
-    collisionCheck();
-    prevTime = (typeof prevTime === 'undefined') ? new Date().getTime() : prevTime;
-    currTime = new Date().getTime();
-    if (currTime > prevTime + 1){
-        prevTime = currTime;
-        draw();
-    }
-        
-}
-
-function jump() {
-    moveup();
-    moveup();
-    moveup();    
-    movedown();
-    movedown();
-    movedown();
+    draw();
 }
 
 function gameOver() {
@@ -325,7 +348,7 @@ function addBrick() {
 function addBrick2() {
     newBrick = {}
     newBrick.x = canvas.width;
-    newBrick.y = canvas.height-brickHeight;
+    newBrick.y = backgroundHeight - brickHeight;
     brickList.push(newBrick);
 }
 
@@ -409,7 +432,7 @@ function movedown() {
  * @author paulirish / http://paulirish.com/
  * https://gist.github.com/mrdoob/838785
  */
-if ( !window.requestAnimationFrame ) {
+ if ( !window.requestAnimationFrame ) {
     window.requestAnimationFrame = ( function() {
         return window.webkitRequestAnimationFrame ||
         window.mozRequestAnimationFrame ||
